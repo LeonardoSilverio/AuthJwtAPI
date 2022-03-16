@@ -1,9 +1,10 @@
 # AuthJwtAPI
 My first JWT Authentication !
+Login and Register
 
 - Node.js
 - Express
-- Crud (Get , Post , Put and Delete)
+- Crud (Get , Post)
 - Routes
 - MongoDB
 - Mongoose
