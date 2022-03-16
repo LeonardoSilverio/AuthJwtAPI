@@ -7,11 +7,11 @@ checkToken
 const statusCode = require("../Server/statusCode");
 
 router.get('/', async (req,res)=>{
-    return await res.status(200).json({msg:'Default Route'})
+    return await res.status(statusCode['OK']).json({msg:'Default Route'})
 });
 
 router.post('/register', async (req,res)=>{
-    const { email, username , password , confirmPassword } = req.body;
+    const { email, username , password , confirmPassword} = req.body;
 
     if(!email || !username || !password || !confirmPassword){
         return res.status(statusCode['BAD_REQUEST']).json({message:'Please fill all the fields'})
@@ -20,6 +20,7 @@ router.post('/register', async (req,res)=>{
     if(password !== confirmPassword){
         return res.status(statusCode['BAD_REQUEST']).json({message:'Passwords do not match'})
     }
+
 
     const user = await User.findOne({email});
 
@@ -66,7 +67,7 @@ router.post('/login', async (req,res)=>{
 
     try{
         const secret = process.env.JWT_SECRET;
-        const token = jwt.sign({id:user._id}, secret ,{expiresIn:'1m'});
+        const token = jwt.sign({id:user._id}, secret ,{expiresIn:'1d'});
         return res.status(statusCode['OK']).json({message:"Auth Sucessful",token})
     }
     catch(error){
@@ -76,17 +77,30 @@ router.post('/login', async (req,res)=>{
 
 });
 
-//Upgrade User view your private route
-router.get('/user/:id',checkToken, async (req,res)=>{
+//Private route
+router.get('/profile/:id',checkToken, async (req,res)=>{
     const { id } = req.params;
-    const user = await User.findById(id,{password:0});
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    //Payload ID token validation with ID User
+    const informationToken = atob(token.split('.')[1]);
+    const idPayload = JSON.parse(informationToken).id;
+
+
+    // const user = await User.findById(id,{password:0});
+    const user = await User.findById(id);
 
     if(!user){
         return res.status(statusCode['BAD_REQUEST']).json({message:'User does not exist'})
-    }
- 
-    return res.status(statusCode['OK']).json({user})
+    };
 
+    if (idPayload == id) {
+        return res.status(statusCode['OK']).json({user:user,message:'You have all information about your profile.'})
+    }
+    else{
+        return res.status(statusCode['OK']).json({user:user.username,email:user.email,message:'This is not your profile, information will be limited.'})
+    }
 
 });
 
