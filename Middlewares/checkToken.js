@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const statusCode = require("../Server/statusCode");
+const statusCode = require("../server/statusCode");
 
 function checkToken(req,res,next) {
     const authHeader = req.headers['authorization'];

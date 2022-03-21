@@ -1,13 +1,19 @@
-const User = require("../Models/User");
+const User = require("../models/User");
 const router = require("express").Router();
 const bcrypt = require('bcrypt');
 var jwt = require('jsonwebtoken');
-const checkToken = require("../Middlewares/checkToken");
+const checkToken = require("../middlewares/checkToken");
 checkToken
-const statusCode = require("../Server/statusCode");
+const statusCode = require("../server/statusCode");
+const path = require("path");
 
-router.get('/', async (req,res)=>{
-    return await res.status(statusCode['OK']).json({msg:'Default Route'})
+
+router.get('/login', (req,res)=>{
+    res.sendFile(path.join(__dirname, '../Templates/loginPage.html'));
+});
+
+router.get('/register', (req,res)=>{
+    res.sendFile(path.join(__dirname, '../Templates/registerPage.html'));
 });
 
 router.post('/register', async (req,res)=>{
@@ -49,8 +55,12 @@ router.post('/register', async (req,res)=>{
 router.post('/login', async (req,res)=>{
     const { email, password } = req.body;
 
-    if(!email || !password){
-        return res.status(statusCode['BAD_REQUEST']).json({message:'Please fill all the fields'})
+    if (!email) {
+        return res.status(statusCode['BAD_REQUEST']).json({message:'Please fill Email'})
+    }
+
+    if (!password) {
+        return res.status(statusCode['BAD_REQUEST']).json({message:'Please fill Password'})
     }
 
     const user = await User.findOne({email});
@@ -81,7 +91,7 @@ router.post('/login', async (req,res)=>{
 router.get('/profile/:id',checkToken, async (req,res)=>{
     const { id } = req.params;
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = authHeader.split(' ')[1];
     
     //Payload ID token validation with ID User
     const informationToken = atob(token.split('.')[1]);
